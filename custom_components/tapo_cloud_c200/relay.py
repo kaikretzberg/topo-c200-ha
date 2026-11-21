@@ -54,7 +54,8 @@ class Relay:
     async def start(self):
         app = web.Application()
         path = "/" + secrets.token_urlsafe(32)
-        app.router.add_get(path, self.handle, allow_head=False)
+        app.router.add_get(path + "/raw", self.handle, allow_head=False)
+        app.router.add_get(path, self.video_only, allow_head=False)
         self.runner = web.AppRunner(
             app, access_log=None, handler_cancellation=True, shutdown_timeout=2
         )
@@ -90,6 +91,55 @@ class Relay:
                 yield payload
         finally:
             writer.close()
+
+    async def video_only(self, request):
+        """Remove C200 private audio tracks before HA packages the first keyframe."""
+        process = await asyncio.create_subprocess_exec(
+            "ffmpeg",
+            "-nostdin",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-fflags",
+            "+genpts+discardcorrupt",
+            "-f",
+            "mpegts",
+            "-i",
+            self.url + "/raw",
+            "-map",
+            "0:v:0",
+            "-an",
+            "-c:v",
+            "copy",
+            "-muxdelay",
+            "0",
+            "-muxpreload",
+            "0",
+            "-f",
+            "mpegts",
+            "pipe:1",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        response = web.StreamResponse(
+            headers={"Content-Type": "video/mp2t", "Cache-Control": "no-store"}
+        )
+        try:
+            while chunk := await process.stdout.read(65536):
+                if not response.prepared:
+                    await response.prepare(request)
+                await response.write(chunk)
+            if not response.prepared:
+                raise web.HTTPServiceUnavailable(text="No video from cloud relay")
+            return response
+        finally:
+            if process.returncode is None:
+                try:
+                    process.kill()
+                except ProcessLookupError:
+                    pass
+            # Drain the pipe after cancellation so process.wait cannot deadlock.
+            await process.communicate()
 
     async def handle(self, request):
         response = web.StreamResponse(
