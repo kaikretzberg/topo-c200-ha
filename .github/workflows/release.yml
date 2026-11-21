@@ -1,0 +1,21 @@
+name: Publish HACS release
+on:
+  push:
+    tags:
+      - 'v[0-9]*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish the tagged integration
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+          version=$(gh api --method GET "repos/$GITHUB_REPOSITORY/contents/custom_components/tapo_cloud_c200/manifest.json" -f ref="$TAG" --jq .content | base64 --decode | jq -er .version)
+          test "$TAG" = "v$version"
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --notes-from-tag

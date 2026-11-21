@@ -111,6 +111,8 @@ class Relay:
             "error",
             "-fflags",
             "+genpts+discardcorrupt",
+            "-dts_delta_threshold",
+            "1",
             "-probesize",
             "128k",
             "-analyzeduration",
@@ -162,31 +164,38 @@ class Relay:
         response = web.StreamResponse(
             headers={"Content-Type": "video/mp2t", "Cache-Control": "no-store"}
         )
-        try:
-            async with aclosing(self.media()) as stream:
-                async for payload in stream:
-                    if not response.prepared:
-                        await response.prepare(request)
-                    await response.write(payload)
-        except SessionExpired:
-            self.reauthenticate()
-        except (
-            OSError,
-            EOFError,
-            ValueError,
-            RuntimeError,
-            asyncio.LimitOverrunError,
-        ) as err:
-            # Relay URLs and tokens must never appear in the journal.
-            reason = type(err).__name__
-            if isinstance(err, RuntimeError) and re.fullmatch(
-                r"relay rejected: code=-?\d+|Relay refused the media connection(?: \(HTTP \d{3}\))?|"
-                r"Encrypted relay payload is unsupported|incomplete relay response|"
-                r"CIPC endpoint discovery rejected: code -?\d+",
-                str(err),
-            ):
-                reason = str(err)
-            _LOGGER.warning("C200 cloud stream interrupted (%s)", reason)
-        if not response.prepared:
-            raise web.HTTPServiceUnavailable(text="Cloud stream unavailable")
+        retry_delay = 1
+        while True:
+            try:
+                async with aclosing(self.media()) as stream:
+                    async for payload in stream:
+                        if not response.prepared:
+                            await response.prepare(request)
+                        await response.write(payload)
+                        retry_delay = 1
+            except SessionExpired:
+                self.reauthenticate()
+                if not response.prepared:
+                    raise web.HTTPServiceUnavailable(text="Cloud session expired") from None
+                break
+            except (OSError, EOFError, ValueError, RuntimeError,
+                    asyncio.LimitOverrunError) as err:
+                # Relay URLs and tokens must never appear in the journal.
+                reason = type(err).__name__
+                if isinstance(err, RuntimeError) and re.fullmatch(
+                    r"relay rejected: code=-?\d+|Relay refused the media connection(?: \(HTTP \d{3}\))?|"
+                    r"Encrypted relay payload is unsupported|incomplete relay response|"
+                    r"CIPC endpoint discovery rejected: code -?\d+",
+                    str(err),
+                ):
+                    reason = str(err)
+                _LOGGER.warning("C200 cloud stream interrupted (%s)", reason)
+            if not response.prepared:
+                raise web.HTTPServiceUnavailable(text="Cloud stream unavailable")
+            if request.transport is None or request.transport.is_closing():
+                break
+            # Reopen the cloud session inside the existing local MPEG-TS response.
+            # Ending HTTP here sends HA's stream worker into increasing retry delays.
+            await asyncio.sleep(retry_delay)
+            retry_delay = min(5, retry_delay * 2)
         return response
