@@ -19,4 +19,6 @@ jobs:
           set -eu
           version=$(gh api --method GET "repos/$GITHUB_REPOSITORY/contents/custom_components/tapo_cloud_c200/manifest.json" -f ref="$TAG" --jq .content | base64 --decode | jq -er .version)
           test "$TAG" = "v$version"
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --notes-from-tag
+          tag_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq .object.sha)
+          notes=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_sha" --jq .message)
+          gh api --method POST "repos/$GITHUB_REPOSITORY/releases" -f tag_name="$TAG" -f name="$TAG" -f body="$notes"
