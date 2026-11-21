@@ -1,0 +1,34 @@
+blueprint:
+  name: "Tapo C200 · Zeitraffer mit einem Bild pro Minute"
+  description: "Speichert jede volle Minute ein JPEG im Tagesordner der Kamera. Datum und Dateiname verwenden UTC, damit die Reihenfolge auch bei der Zeitumstellung stimmt."
+  domain: automation
+  input:
+    camera_entity:
+      name: Kamera
+      selector:
+        entity:
+          filter:
+            - domain: camera
+              integration: tapo_cloud_c200
+    output_dir:
+      name: Zielordner innerhalb von Home Assistant
+      description: "Schreibbarer Pfad unter einem freigegebenen Medienverzeichnis. Bei Home Assistant Container für Langzeitaufnahmen dauerhaft einbinden."
+      default: /media/c200-zeitraffer
+      selector:
+        text:
+variables:
+  camera_entity: !input camera_entity
+  output_dir: !input output_dir
+triggers:
+  - trigger: time_pattern
+    minutes: "*"
+    seconds: "0"
+actions:
+  - variables:
+      stamp: "{{ utcnow().strftime('%Y-%m-%d_%H-%M-%S') }}"
+  - action: camera.snapshot
+    target:
+      entity_id: !input camera_entity
+    data:
+      filename: "{{ output_dir.rstrip('/') }}/{{ camera_entity.split('.')[1] }}/{{ stamp[:10] }}/{{ stamp }}.jpg"
+mode: single

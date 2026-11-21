@@ -1,0 +1,61 @@
+{
+  "title": "Tapo Cloud C200",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Tapo-Konto",
+        "description": "Melde dich mit dem Tapo-Konto an, das Zugriff auf die entfernte C200 hat.",
+        "data": {
+          "email": "E-Mail",
+          "password": "Passwort"
+        }
+      },
+      "method": {
+        "title": "Bestätigungsmethode",
+        "data": {
+          "method": "Code empfangen über"
+        }
+      },
+      "code": {
+        "title": "Anmeldung bestätigen",
+        "description": "Trage den Code aus der Tapo-App oder der E-Mail ein.",
+        "data": {
+          "code": "Code"
+        }
+      },
+      "camera": {
+        "title": "C200 auswählen",
+        "data": {
+          "camera": "Kamera"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Zugangsdaten prüfen.",
+      "login_failed": "Anmeldung fehlgeschlagen. Prüfe Zugangsdaten und Internetverbindung.",
+      "code_failed": "Code abgelehnt oder abgelaufen. Bei Bedarf Einrichtung erneut starten.",
+      "send_failed": "Codeversand fehlgeschlagen. Bitte erneut versuchen."
+    },
+    "abort": {
+      "unsupported_mfa": "Konto bietet keine unterstützte Bestätigungsmethode.",
+      "already_configured": "Diese Kamera ist bereits eingerichtet.",
+      "list_failed": "Kameras konnten nicht geladen werden. Einrichtung bitte erneut starten.",
+      "no_camera": "Die gewählte C200 ist in diesem Konto nicht verfügbar."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Frigate",
+        "description": "Benutzer: frigate. Lege ein eigenes zufälliges Lesepasswort fest (20–128 Zeichen). Leer lassen, um ein vorhandenes Passwort zu behalten.",
+        "data": {
+          "enable_frigate": "Frigate-Zugriff aktivieren",
+          "password": "Lesepasswort"
+        }
+      }
+    },
+    "error": {
+      "invalid_stream_password": "Verwende 20–128 Buchstaben, Ziffern, Bindestriche oder Unterstriche."
+    }
+  }
+}

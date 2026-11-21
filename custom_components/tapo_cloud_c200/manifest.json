@@ -1,0 +1,17 @@
+{
+  "domain": "tapo_cloud_c200",
+  "name": "Tapo Cloud C200",
+  "codeowners": [
+    "@kaikretzberg"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "stream"
+  ],
+  "documentation": "https://github.com/kaikretzberg/topo-c200-ha",
+  "integration_type": "device",
+  "iot_class": "cloud_push",
+  "requirements": [],
+  "version": "0.1.1",
+  "issue_tracker": "https://github.com/kaikretzberg/topo-c200-ha/issues"
+}

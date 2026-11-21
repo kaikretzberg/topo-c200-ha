@@ -1,0 +1,16 @@
+# Diese Einträge in die vorhandenen Abschnitte go2rtc.streams und cameras übernehmen.
+# HA-IP, PASSWORT und camera.tapo_c200 durch die eigenen Werte ersetzen.
+go2rtc:
+  streams:
+    tapo_cloud: "ffmpeg:http://frigate:PASSWORT@HA-IP:8123/api/tapo_cloud_c200/camera.tapo_c200/live.m3u8#video=copy"
+
+cameras:
+  tapo_cloud:
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/tapo_cloud
+          input_args: preset-rtsp-restream
+          roles: [detect]
+    detect:
+      enabled: true
+      fps: 5

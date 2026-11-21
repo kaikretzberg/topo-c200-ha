@@ -1,0 +1,61 @@
+{
+  "title": "Tapo Cloud C200",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Tapo account",
+        "description": "Sign in with the Tapo account that can view the remote C200.",
+        "data": {
+          "email": "E-Mail",
+          "password": "Password"
+        }
+      },
+      "method": {
+        "title": "Verification method",
+        "data": {
+          "method": "Send code via"
+        }
+      },
+      "code": {
+        "title": "Verify sign-in",
+        "description": "Enter the code from the Tapo app or email.",
+        "data": {
+          "code": "Code"
+        }
+      },
+      "camera": {
+        "title": "Choose your C200",
+        "data": {
+          "camera": "Camera"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Check your credentials.",
+      "login_failed": "Login failed. Check your credentials and internet connection.",
+      "code_failed": "Code rejected or expired. Restart setup to request another.",
+      "send_failed": "Could not send code. Please retry."
+    },
+    "abort": {
+      "unsupported_mfa": "No supported verification method.",
+      "already_configured": "Camera already configured.",
+      "list_failed": "Could not load cameras. Please restart setup.",
+      "no_camera": "No matching C200 found in this account."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Frigate",
+        "description": "User: frigate. Set a separate random reader password (20–128 characters). Leave blank to keep an existing password.",
+        "data": {
+          "enable_frigate": "Enable Frigate access",
+          "password": "Reader password"
+        }
+      }
+    },
+    "error": {
+      "invalid_stream_password": "Use 20–128 letters, digits, hyphens or underscores."
+    }
+  }
+}
