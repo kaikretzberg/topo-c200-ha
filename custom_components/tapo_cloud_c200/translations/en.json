@@ -55,7 +55,7 @@
       }
     },
     "error": {
-      "invalid_stream_password": "Use 20–128 letters, digits, hyphens or underscores."
+      "invalid_stream_password": "The reader password must be between 20 and 128 characters long."
     }
   }
 }

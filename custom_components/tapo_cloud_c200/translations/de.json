@@ -55,7 +55,7 @@
       }
     },
     "error": {
-      "invalid_stream_password": "Verwende 20–128 Buchstaben, Ziffern, Bindestriche oder Unterstriche."
+      "invalid_stream_password": "Das Lesepasswort muss zwischen 20 und 128 Zeichen lang sein."
     }
   }
 }

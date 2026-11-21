@@ -1,5 +1,5 @@
 # Diese Einträge in die vorhandenen Abschnitte go2rtc.streams und cameras übernehmen.
-# HA-IP, PASSWORT und camera.tapo_c200 durch die eigenen Werte ersetzen.
+# HA-IP, PASSWORT (URL-kodiert) und camera.tapo_c200 durch die eigenen Werte ersetzen.
 go2rtc:
   streams:
     tapo_cloud: "ffmpeg:http://frigate:PASSWORT@HA-IP:8123/api/tapo_cloud_c200/camera.tapo_c200/live.m3u8#video=copy"

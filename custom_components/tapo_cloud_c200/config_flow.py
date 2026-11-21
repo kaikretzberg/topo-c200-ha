@@ -1,7 +1,6 @@
 """Interactive account sign-in, MFA, and cloud camera selection."""
 
 import uuid
-import re
 
 try:
     import probatio as vol
@@ -195,7 +194,7 @@ class FrigateOptions(config_entries.OptionsFlowWithReload):
                 return self.async_create_entry(
                     title="", data={"frigate_digest": existing}
                 )
-            if re.fullmatch(r"[a-zA-Z0-9_-]{20,128}", password):
+            if 20 <= len(password) <= 128:
                 return self.async_create_entry(
                     title="", data={"frigate_digest": digest(password)}
                 )

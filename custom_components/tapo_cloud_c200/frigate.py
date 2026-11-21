@@ -37,7 +37,7 @@ class FrigateStream(HomeAssistantView):
         if not entry or not (expected := entry.options.get("frigate_digest")):
             raise web.HTTPNotFound()
         header = request.headers.get("Authorization", "")
-        challenge = {"WWW-Authenticate": 'Basic realm="C200 stream"'}
+        challenge = {"WWW-Authenticate": 'Basic realm="C200 stream", charset="UTF-8"'}
         if not header:
             # FFmpeg's normal first request asks for the authentication scheme.
             return web.Response(status=401, headers=challenge)
