@@ -1,6 +1,7 @@
 name: Publish HACS release
 on:
   push:
+    branches: ['release/v0.1.5']
     tags:
       - 'v[0-9]*'
 
@@ -13,7 +14,7 @@ jobs:
       - name: Publish the tagged integration
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: v0.1.5
         run: |
           set -eu
           version=$(gh api --method GET "repos/$GITHUB_REPOSITORY/contents/custom_components/tapo_cloud_c200/manifest.json" -f ref="$TAG" --jq .content | base64 --decode | jq -er .version)
