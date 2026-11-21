@@ -3,6 +3,7 @@
 import asyncio
 from contextlib import aclosing
 import logging
+import re
 import secrets
 
 from aiohttp import web
@@ -85,8 +86,16 @@ class Relay:
                 writer.write(request)
                 await writer.drain()
                 headers = await reader.readuntil(b"\r\n\r\n")
-                if headers.split(b"\r\n", 1)[0].split()[1:2] != [b"200"]:
-                    raise RuntimeError("Relay refused the media connection")
+                status = headers.split(b"\r\n", 1)[0].split()[1:2]
+                if status != [b"200"]:
+                    code = (
+                        status[0].decode("ascii")
+                        if status and status[0].isdigit()
+                        else "unknown"
+                    )
+                    raise RuntimeError(
+                        f"Relay refused the media connection (HTTP {code})"
+                    )
             async for payload in media_parts(reader):
                 yield payload
         finally:
@@ -102,6 +111,10 @@ class Relay:
             "error",
             "-fflags",
             "+genpts+discardcorrupt",
+            "-probesize",
+            "128k",
+            "-analyzeduration",
+            "500000",
             "-f",
             "mpegts",
             "-i",
@@ -130,6 +143,10 @@ class Relay:
                     await response.prepare(request)
                 await response.write(chunk)
             if not response.prepared:
+                _LOGGER.warning(
+                    "C200 video remuxer returned no packets (exit %s)",
+                    await process.wait(),
+                )
                 raise web.HTTPServiceUnavailable(text="No video from cloud relay")
             return response
         finally:
@@ -161,7 +178,15 @@ class Relay:
             asyncio.LimitOverrunError,
         ) as err:
             # Relay URLs and tokens must never appear in the journal.
-            _LOGGER.warning("C200 cloud stream interrupted (%s)", type(err).__name__)
+            reason = type(err).__name__
+            if isinstance(err, RuntimeError) and re.fullmatch(
+                r"relay rejected: code=-?\d+|Relay refused the media connection(?: \(HTTP \d{3}\))?|"
+                r"Encrypted relay payload is unsupported|incomplete relay response|"
+                r"CIPC endpoint discovery rejected: code -?\d+",
+                str(err),
+            ):
+                reason = str(err)
+            _LOGGER.warning("C200 cloud stream interrupted (%s)", reason)
         if not response.prepared:
             raise web.HTTPServiceUnavailable(text="Cloud stream unavailable")
         return response
